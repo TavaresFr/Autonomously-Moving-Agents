@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,11 +8,13 @@ public class Bot : MonoBehaviour
 {
     NavMeshAgent agent;
     [SerializeField] GameObject target;
+    Drive ds;
 
     // Start is called before the first frame update
     void Start()
     {
         agent = this.GetComponent<NavMeshAgent>();
+        ds = target.AddComponent<Drive>();
     }
 
     void Seek(Vector3 location)
@@ -32,20 +35,29 @@ public class Bot : MonoBehaviour
         float relativeHeading = Vector3.Angle(this.transform.forward, this.transform.TransformVector(target.transform.forward));
         float toTarget = Vector3.Angle(this.transform.forward, this.transform.TransformVector(targetDir));
 
-        if ((relativeHeading < 20 && toTarget > 90) || target.GetComponent<Drive>().currentSpeed < 0.01f)
+        if ((relativeHeading < 20 && toTarget > 90) || ds.currentSpeed < 0.01f)
         {
             Seek(target.transform.position);
             return;
         }
 
-        float lookAhead = targetDir.magnitude/(agent.speed + target.GetComponent<Drive>().currentSpeed);
+        float lookAhead = targetDir.magnitude/(agent.speed + ds.currentSpeed);
 
         Seek(target.transform.position + target.transform.forward * lookAhead);
+    }
+
+    void Evade()
+    {
+        Vector3 targetDir = target.transform.position - this.transform.position;
+
+        float lookAhead = targetDir.magnitude / (agent.speed + ds.currentSpeed);
+
+        Flee(target.transform.position + target.transform.forward * lookAhead);
     }
 
     // Update is called once per frame
     void Update()
     {
-        Pursue();
+        Evade();
     }
 }

@@ -10,6 +10,12 @@ public class Bot : MonoBehaviour
     [SerializeField] GameObject target;
     Drive ds;
 
+    [SerializeField] float wanderRadius = 10;
+
+    [SerializeField] float wanderDistance = 20;
+
+    [SerializeField] float wanderJitter = 2;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -55,9 +61,28 @@ public class Bot : MonoBehaviour
         Flee(target.transform.position + target.transform.forward * lookAhead);
     }
 
+    Vector3 wanderTarget = Vector3.zero;
+
+    void Wander()
+    {
+        //when we do this the wander target is off the wander radius
+        wanderTarget += new Vector3(Random.Range(-1.0f, 1.0f) * wanderJitter, 0, Random.Range(-1.0f, 1.0f) * wanderJitter);
+
+        //so then we normalize it which will put it to values of 1 etc..
+        wanderTarget.Normalize();
+
+        //and then we multiply it by the wander radius that puts it again on the edge of the wander radius (imagine a circle)
+        wanderTarget *= wanderRadius;
+
+        Vector3 targetLocal = wanderTarget + new Vector3(0, 0, wanderDistance);
+        Vector3 targetWorld = this.gameObject.transform.InverseTransformVector(targetLocal);
+
+        Seek(targetWorld);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        Evade();
+        Wander();
     }
 }
